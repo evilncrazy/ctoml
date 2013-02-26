@@ -15,4 +15,4 @@ toml.o : $(SF)/toml.cc $(HF)/toml.h $(HF)/tomlvalue.h
 	$(CC) $(CFLAGS) -c $(SF)/toml.cc
 
 toml : main.o tomlvalue.o toml.o
-	$(CC) main.o tomlvalue.o toml.o -o toml
+	$(CC) main.o tomlvalue.o toml.o -o ctoml

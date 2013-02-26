@@ -176,7 +176,10 @@ CTomlValue CToml::parse_boolean() {
 }
 
 CTomlValue CToml::parse_array() {
-   // TODO(evilncrazy): ensure homogenous array
+   // TODO(evilncrazy): Currently, arrays can be heterogenous
+   // that is, each element can be of any type. There is currently
+   // a discussion on whether to switch to heterogenous arrays.
+   // Shall wait and see.
    expect('[');
 
    std::vector<CTomlValue> array;
@@ -240,6 +243,7 @@ void CToml::parse() {
          std::string key = parse_key();
          advance('='); skip_whitespace();
 
+         // TODO(evilncrazy): ensure that no key names clash
          CTomlValue value = parse_value();
          if (value.type() != TOML_NULL) {
             if (get((cur_group + key).c_str()).type() == TOML_NULL) {

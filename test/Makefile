@@ -10,4 +10,4 @@ main.o : main.cc $(HF)/toml.h
 	$(CC) $(CFLAGS) -c main.cc
 
 tomltest : main.o
-	$(CC) main.o $(BF)/tomlvalue.o $(BF)/toml.o -o tomltest
+	$(CC) main.o $(BF)/tomlvalue.o $(BF)/toml.o -o ctomltest

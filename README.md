@@ -1,9 +1,9 @@
-ctoml
+Ctoml
 =====
 
 A statically typed parser for @mojombo's TOML, written in C++11.
 
-usage
+Usage
 =====
 
 ```c
@@ -21,6 +21,11 @@ if (val.type() == TOML_STRING) {
 	printf("%s\n", val.as_string());
 }
 
+// But you can compare values without casting
+if (val == "foobar") {
+	// ....
+}
+
 // We can iterate through all the keys
 for (auto key = toml.cbegin(); key != toml.cend(); ++key) {
 	// Key names are stored as std::string
@@ -28,9 +33,17 @@ for (auto key = toml.cbegin(); key != toml.cend(); ++key) {
 }
 ```
 
-Look at main.cc to see other usages (other data types such as ints and arrays).
+Command line tool
+=================
 
-todo
+A command line tool that parses TOML is provided (src/main.cc). It can take either a file or a single line string as input. If the parse is successful, it spews out every key and its value.
+
+```
+./ctoml -f "path/to/file"
+./ctoml -l "single line TOML = 42"
+```
+
+Todo
 ====
 
 * Needs more comprehensive tests
