@@ -105,6 +105,14 @@ void CToml::skip_whitespace(bool new_line) {
    if (is_whitespace(cur(), new_line)) next_skip_whitespace(new_line);
 }
 
+void CToml::skip_whitespace_and_comments() {
+   while (cur() && (is_whitespace(cur(), true) || cur() == '#')) {
+      if (cur() == '#') {
+         while (cur() && cur() != '\n') next_char();
+      }
+      next_char();
+   }
+}
 
 CTomlValue CToml::parse_string() {
    // A string is a double quoted string literal
@@ -178,12 +186,13 @@ CTomlValue CToml::parse_array() {
 
    std::vector<CTomlValue> array;
    while (cur() && cur() != ']') {
-      skip_whitespace(true);
+      skip_whitespace_and_comments();
       array.push_back(parse_value());
 
-      skip_whitespace(true);
+      skip_whitespace_and_comments();
       if (cur() == ']') break;
       advance(',');
+      skip_whitespace_and_comments(); // Need this for trailing commas
    }
 
    advance(']');
@@ -228,12 +237,8 @@ void CToml::parse() {
    std::string cur_group;
 
    // Find next non-whitespace character
-   while (skip_whitespace(true), cur()) {
-      if (cur() == '#') {
-         // Beginning of a comment, ignore until new line
-         while (cur() && cur() != '\n') next_char();
-         next_char();
-      } else if(cur() == '[') {
+   while (skip_whitespace_and_comments(), cur()) {
+      if(cur() == '[') {
          // Key group (it's not an array as an array is always a value)
          cur_group = parse_key_group() + ".";
       } else {

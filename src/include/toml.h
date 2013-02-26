@@ -43,6 +43,7 @@ class CToml {
    void expect(char c);
    void advance(char c, bool new_line = false);
    void skip_whitespace(bool new_line = false);
+   void skip_whitespace_and_comments();
 
    char next_char();
    char next_skip_whitespace(bool new_line = false);

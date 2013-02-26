@@ -3,7 +3,7 @@
 
 test-string = "I'm a string. \"You can quote me\". Tab \t newline \n you get it."
 
-test-positive-int = 42
+test-positive-int = 42 # inline comment
 test-negative-int = -17
 test-large-int = 1152921504606846976
 test-small-int = -1152921504606846976
@@ -13,14 +13,33 @@ test-float2 = 3.1415926
 
 test-date = 1979-05-27T05:32:00Z
 
+[whitespace]
+tabs =	 	 	 	 12345
+
 [group]
 cake = "cake"
 
 [group.subgroup]
 apples = "apples"
 
-server = "192.168.1.1"
-ports = [ 8001, 8001, 8002 ]
-connection_max = 5000
-enabled = true
-[servers]
+[empty-group]
+
+[arrays]
+int-array = [ 1, 2, 3 ]
+str-array = ["hello", "there", "!"]
+
+array-whitespace = [
+	1,2,	3,
+4
+,5
+]
+
+array-trail = [
+	1,2,3, # trailing whitespace
+]
+
+array-comment = [ # comment
+	# comment
+	1 # comment
+	, # comment
+] # comment
