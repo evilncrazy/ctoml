@@ -40,7 +40,7 @@ A command line tool that parses TOML is provided (src/main.cc). It can take eith
 
 ```
 ./ctoml -f "path/to/file"
-./ctoml -l "single line TOML = 42"
+./ctoml -l "single-line-TOML = 42"
 ```
 
 Todo
