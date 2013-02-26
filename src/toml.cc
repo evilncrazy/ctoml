@@ -175,11 +175,6 @@ CTomlValue CToml::parse_boolean() {
    else return error("\"%s\" is not a valid value", str.c_str()), CTomlValue();
 }
 
-CTomlValue CToml::parse_datetime() {
-   // TODO: parse datetime
-   return CTomlValue();
-}
-
 CTomlValue CToml::parse_array() {
    // TODO(evilncrazy): ensure homogenous array
    expect('[');

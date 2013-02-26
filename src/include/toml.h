@@ -51,7 +51,6 @@ class CToml {
    CTomlValue parse_string();
    CTomlValue parse_number();
    CTomlValue parse_boolean();
-   CTomlValue parse_datetime();
    CTomlValue parse_array();
    CTomlValue parse_value();
    std::string parse_key_group();
