@@ -1,7 +1,10 @@
 Ctoml
 =====
 
-A statically typed parser for @mojombo's TOML, written in C++11.
+A statically typed parser for @mojombo's TOML, written in C++11. Currently supports commit c6ea50d of the TOML spec, with a few exceptions:
+
+* Unicode support for strings
+* Null characters ('\0') in string literals
 
 Usage
 =====

@@ -240,26 +240,43 @@ void CToml::parse() {
          // Key group (it's not an array as an array is always a value)
          cur_group = parse_key_group() + ".";
       } else {
-         std::string key = parse_key();
+         std::string key = cur_group + parse_key();
          advance('='); skip_whitespace();
 
-         // TODO(evilncrazy): ensure that no key names clash
          CTomlValue value = parse_value();
          if (value.type() != TOML_NULL) {
-            if (get((cur_group + key).c_str()).type() == TOML_NULL) {
-               values_.insert(std::make_pair(cur_group + key, value));
+            // We check all the prefix key groups to ensure that they haven't
+            // already been defined previously
+            size_t dot_pos = 0;
+            while (dot_pos = key.find(".", dot_pos + 1), dot_pos != std::string::npos) {
+               std::string key_group(key, 0, dot_pos);
+               if(get(key_group.c_str()).type() != TOML_NULL) {
+                  error("The key '%s' has already been used", key_group.c_str());
+                  break;
+               }
+            }
+
+            // Now check the whole key
+            if (get(key.c_str()).type() == TOML_NULL) {
+               if (success())
+                  values_.insert(std::make_pair(key, value));
             } else {
-               error("The key '%s' has already been used", (cur_group + key).c_str());
+               error("The key '%s' has already been used", key.c_str());
             }
          }
       }
    }
 }
 
-CTomlValue CToml::get(const char *key) {
+CTomlValue CToml::get(const char *key) const {
+   return get(const_cast<char *>(key));
+}
+
+CTomlValue CToml::get(char *key) const {
    auto it = values_.find(std::string(key));
    return it != values_.end() ? it->second : CTomlValue();
 }
+
 
 bool CToml::from(char *str) {
    if (str == NULL) return false;

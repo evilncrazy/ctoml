@@ -60,9 +60,10 @@ class CToml {
 
    void parse();
 
-   CTomlValue get(const char *key);
+   CTomlValue get(const char *key) const;
+   CTomlValue get(char *key) const;
 
-   bool good() const { return cur() != '\0' || source_file_ != NULL; }
+   bool good() const { return source_file_ != NULL; }
    bool success() const { return errors_.size() == 0; }
 
    bool from(char *str);

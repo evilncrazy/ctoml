@@ -45,19 +45,22 @@ int main(int argc, char *argv[]) {
          toml.from(argv[2]);
       }
 
-      toml.parse();
-      if (toml.success()) {
-         print_toml(toml);
-      } else {
-         printf("Failed to parse TOML file. There were %d parse error(s).\n",
-            (int)toml.num_errors());
+      if (toml.good()) {
+         toml.parse();
+         if (toml.success()) {
+            print_toml(toml);
+         } else {
+            printf("Failed to parse TOML file. There were %d parse error(s).\n",
+               (int)toml.num_errors());
 
-         for (int i = 0; i < (int)toml.num_errors(); i++) {
-            printf("Line %d: %s\n", toml.get_error(i).line_no + 1,
-               toml.get_error(i).message.c_str());
+            for (int i = 0; i < (int)toml.num_errors(); i++) {
+               printf("Line %d: %s\n", toml.get_error(i).line_no + 1,
+                  toml.get_error(i).message.c_str());
+            }
          }
+      } else {
+         printf("Invalid file input\n");
       }
-
    } else {
       printf("Incorrect usage\n");
    }
