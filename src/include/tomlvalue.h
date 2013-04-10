@@ -54,7 +54,7 @@ class CTomlValue {
    bool operator == (const int64_t val);
    bool operator == (const double val);
    bool operator == (const bool val);
-   bool operator == (const time_t val);   
+   bool operator == (const tm val);
 };
 
 #endif

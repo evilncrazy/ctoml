@@ -61,6 +61,7 @@ bool CTomlValue::operator == (const bool val) {
    return type() == TOML_BOOLEAN && as_boolean() == val;
 }
 
-bool CTomlValue::operator == (const time_t val) {
-   return type() == TOML_DATETIME && as_datetime() == val;
+bool CTomlValue::operator == (const tm val) {
+   tm timeCpy = val; // mktime may modify its argument, so we'll create a copy of it here
+   return type() == TOML_DATETIME && as_datetime() == mktime(&timeCpy);
 }
