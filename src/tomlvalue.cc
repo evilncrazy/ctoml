@@ -65,3 +65,30 @@ bool CTomlValue::operator == (const tm val) {
    tm timeCpy = val; // mktime may modify its argument, so we'll create a copy of it here
    return type() == TOML_DATETIME && as_datetime() == mktime(&timeCpy);
 }
+
+std::ostream &operator << (std::ostream &out, const CTomlValue &v) {
+   switch(v.type()) {
+      case TOML_STRING: out << v.as_string(); break;
+      case TOML_INT: out << v.as_64_int(); break;
+      case TOML_FLOAT: out << v.as_float(); break;
+      case TOML_BOOLEAN: out << (v.as_boolean() ? "true" : "false"); break;
+      case TOML_DATETIME: {
+         time_t t = v.as_datetime();
+         char buf[CTOML_MAX_DATE_LEN];
+         strftime(buf, CTOML_MAX_DATE_LEN, "%Y-%m-%dT%H:%M:%SZ", gmtime(&t));
+         out << buf;
+         break;
+      }
+      case TOML_ARRAY: {
+         out << "[ ";
+         for (int i = 0; i < (int)v.length(); i++) {
+            if (i) printf(", ");
+            out << v.as_array(i);
+         }
+         out << " ]";
+      }
+      default: break;
+   }
+
+   return out;
+}
