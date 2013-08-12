@@ -82,10 +82,11 @@ std::ostream &TomlDocument::write(std::ostream &out) {
 }
 
 TomlParser::TomlParser() {
-
+   cur_line = 0;
 }
 
 TomlParser::TomlParser(std::string filename) {
+   cur_line = 0;
    open(filename);
 }
 
