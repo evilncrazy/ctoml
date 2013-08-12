@@ -1,94 +1,151 @@
 #include "include/tomlvalue.h"
 
-#include <cstring>
+using namespace ctoml;
 
-CTomlValue::CTomlValue() : type_(TOML_NULL) { }
+TomlValue::TomlValue(TomlType type) : type_(type) { }
 
-CTomlValue::CTomlValue(const CTomlValue &val) :
-   value_(val.value_), length_(val.length_), type_(val.type_) {
-   // We need to do extra copy if this is an array or string
-   if (type_ == TOML_STRING) {
-      value_.p_str = new char[strlen(val.as_string()) + 1];
-      strcpy(value_.p_str, val.as_string());
-   } else if (type_ == TOML_ARRAY) {
-      value_.p_array = new CTomlValue[val.length_];
+TomlType TomlValue::type() const {
+   return type_;
+}
 
-      for (size_t i = 0; i < val.length_; i++) {
-         value_.p_array[i] = CTomlValue(val.as_array(i));
-      }
+std::unique_ptr<TomlValue> TomlValue::create_string(std::string val) {
+   return std::unique_ptr<TomlValue>(new TomlString(val));
+}
+
+std::unique_ptr<TomlValue> TomlValue::create_int(std::int64_t val) {
+   return std::unique_ptr<TomlValue>(new TomlInt(val));
+}
+
+std::unique_ptr<TomlValue> TomlValue::create_float(double val) {
+   return std::unique_ptr<TomlValue>(new TomlFloat(val));
+}
+
+std::unique_ptr<TomlValue> TomlValue::create_boolean(bool val) {
+   return std::unique_ptr<TomlValue>(new TomlBoolean(val));
+}
+
+std::unique_ptr<TomlValue> TomlValue::create_datetime(tm val) {
+   return std::unique_ptr<TomlValue>(new TomlDateTime(val));
+}
+
+std::unique_ptr<TomlValue> TomlValue::create_array() {
+   return std::unique_ptr<TomlValue>(new TomlArray());
+}
+
+bool TomlValue::equals(std::string) const {
+   return type() == TomlType::String;
+}
+
+bool TomlValue::equals(const char *) const {
+   return type() == TomlType::String;
+}
+
+bool TomlValue::equals(std::int64_t) const {
+   return type() == TomlType::Int;
+}
+
+bool TomlValue::equals(int) const {
+   return type() == TomlType::Int;
+}
+
+bool TomlValue::equals(float) const {
+   return type() == TomlType::Float;
+}
+
+bool TomlValue::equals(bool) const {
+   return type() == TomlType::Boolean;
+}
+
+TomlString::TomlString(std::string val) : TomlValue(TomlType::String), val_(val) { }
+TomlInt::TomlInt(std::int64_t val) : TomlValue(TomlType::Int), val_(val) { }
+TomlFloat::TomlFloat(double val) : TomlValue(TomlType::Float), val_(val) { }
+TomlBoolean::TomlBoolean(bool val) : TomlValue(TomlType::Boolean), val_(val) { }
+TomlDateTime::TomlDateTime(tm val) : TomlValue(TomlType::DateTime) { val_ = mktime(&val); }
+TomlArray::TomlArray() : TomlValue(TomlType::Array) { }
+
+std::string TomlString::value() const { return val_; }
+std::int64_t TomlInt::value() const { return val_; }
+double TomlFloat::value() const { return val_; }
+bool TomlBoolean::value() const { return val_; }
+time_t TomlDateTime::value() const { return val_; }
+
+void TomlArray::add(std::unique_ptr<TomlValue> v) {
+   array_.push_back(move(v));
+}
+
+void TomlArray::add(std::shared_ptr<TomlValue> v) {
+   array_.push_back(v);
+}
+
+TomlArray::const_iterator TomlArray::cbegin() const {
+   return array_.cbegin();
+}
+
+TomlArray::const_iterator TomlArray::cend() const {
+   return array_.cend();
+}
+
+std::shared_ptr<TomlValue> TomlArray::at(const int index) const {
+   return array_[index];
+}
+
+std::shared_ptr<TomlValue> TomlArray::operator[] (const int index) const {
+   return at(index);
+}
+
+bool TomlString::equals(std::string val) const {
+   return val_ == val;
+}
+
+bool TomlString::equals(const char *val) const {
+   return val_ == std::string(val);
+}
+
+bool TomlInt::equals(std::int64_t val) const {
+   return val_ == val;
+}
+
+bool TomlInt::equals(int val) const {
+   return val_ == val;
+}
+
+bool TomlFloat::equals(float val) const {
+   return val_ == val;
+}
+
+bool TomlBoolean::equals(bool val) const {
+   return val_ == val;
+}
+
+std::string TomlString::to_string() const {
+   return val_;
+}
+
+std::string TomlInt::to_string() const {
+   return std::to_string(val_);
+}
+
+std::string TomlFloat::to_string() const {
+   return std::to_string(val_);
+}
+
+std::string TomlBoolean::to_string() const {
+   return val_ ? "true" : "false";
+}
+
+std::string TomlDateTime::to_string() const {
+   char buf[CTOML_MAX_DATE_LEN];
+   strftime(buf, CTOML_MAX_DATE_LEN, "%Y-%m-%dT%H:%M:%SZ", gmtime(&val_));
+   return std::string(buf);
+}
+
+std::string TomlArray::to_string() const {
+   std::string str = "[";
+   for (int i = 0; i < (int)array_.size(); i++) {
+      if (i) str += ", ";
+      str += array_[i]->to_string();
    }
-}
+   str += "]";
 
-CTomlValue::CTomlValue(char *val) : type_(TOML_STRING) {
-   value_.p_str = new char[strlen(val) + 1];
-   strcpy(value_.p_str, val);
-}
-
-CTomlValue::CTomlValue(int val) : type_(TOML_INT) { value_.p_int = val; }
-CTomlValue::CTomlValue(int64_t val) : type_(TOML_INT) { value_.p_int = val; }
-CTomlValue::CTomlValue(float val) : type_(TOML_FLOAT) { value_.p_float = (double)val; }
-CTomlValue::CTomlValue(double val) : type_(TOML_FLOAT) { value_.p_float = val; }
-CTomlValue::CTomlValue(bool val) : type_(TOML_BOOLEAN) { value_.p_bool = val; }
-CTomlValue::CTomlValue(tm val) : type_(TOML_DATETIME) { value_.p_time = mktime(&val); }
-
-CTomlValue::CTomlValue(CTomlValue array[], size_t len) : length_(len), type_(TOML_ARRAY) {
-   // Copy the given array
-   value_.p_array = new CTomlValue[len];
-
-   for (size_t i = 0; i < len; i++) {
-      value_.p_array[i] = CTomlValue(array[i]);
-   }
-}
-
-bool CTomlValue::operator == (const char *val) {
-   return type() == TOML_STRING && !strcmp(as_string(), val);
-}
-
-bool CTomlValue::operator == (const int val) {
-   return type() == TOML_INT && as_int() == val;
-}
-
-bool CTomlValue::operator == (const int64_t val) {
-   return type() == TOML_INT && as_64_int() == val;
-}
-
-
-bool CTomlValue::operator == (const double val) {
-   return type() == TOML_FLOAT && as_float() == val;
-}
-
-bool CTomlValue::operator == (const bool val) {
-   return type() == TOML_BOOLEAN && as_boolean() == val;
-}
-
-bool CTomlValue::operator == (const tm val) {
-   tm timeCpy = val; // mktime may modify its argument, so we'll create a copy of it here
-   return type() == TOML_DATETIME && as_datetime() == mktime(&timeCpy);
-}
-
-std::ostream &operator << (std::ostream &out, const CTomlValue &v) {
-   switch(v.type()) {
-      case TOML_STRING: out << v.as_string(); break;
-      case TOML_INT: out << v.as_64_int(); break;
-      case TOML_FLOAT: out << v.as_float(); break;
-      case TOML_BOOLEAN: out << (v.as_boolean() ? "true" : "false"); break;
-      case TOML_DATETIME: {
-         time_t t = v.as_datetime();
-         char buf[CTOML_MAX_DATE_LEN];
-         strftime(buf, CTOML_MAX_DATE_LEN, "%Y-%m-%dT%H:%M:%SZ", gmtime(&t));
-         out << buf;
-         break;
-      }
-      case TOML_ARRAY: {
-         out << "[ ";
-         for (int i = 0; i < (int)v.length(); i++) {
-            if (i) printf(", ");
-            out << v.as_array(i);
-         }
-         out << " ]";
-      }
-      default: break;
-   }
-
-   return out;
+   return str;
 }

@@ -12,43 +12,58 @@ Usage
 ```c
 #include "toml.h"
 
-CToml toml;
-toml.open("example.toml");
-toml.parse();
+#include <iostream>
 
-// Get the value of a key
-CTomlValue val = toml.get("potatoe.cake");
+using namespace ctoml;
 
-// CTomlValues have types
-if (val.type() == TOML_STRING) {
-	printf("%s\n", val.as_string());
-}
+int main() {
+	TomlParser toml("example.toml");
+	auto doc = toml.parse();
 
-// But you can compare values without casting
-if (val == "foobar") {
-	// ....
-}
+	// Get the value of a key
+	auto val = doc.get("potatoe.cake");
 
-// We can iterate through all the keys
-for (auto key = toml.cbegin(); key != toml.cend(); ++key) {
-	// Key names are stored as std::string
-	printf("%s\n", key->first.c_str());
+	// You can print it out
+	std::cout << val->to_string() << std::endl;
+
+	// Or check equality
+	if (val->equals("foobar")) {
+		// ....
+	}
+
+	// To use the actual value, you will need to cast it
+	if (val->type() == TomlType::Int) {
+		// Cast it into an int
+		auto t = std::static_pointer_cast<TomlInt>(val);
+
+		// Print out double the value
+		std::cout << t->value() * 2 << std::endl;
+	}
+
+	// We can iterate through all the keys
+	for (auto it = doc.cbegin(); it != doc.cend(); ++it) {
+		std::cout << it->first << " = " << it->second->to_string() << std::endl;
+	}
+
+	// We can modify the document on the fly
+	doc.set("title", TomlValue::create_string("Hello world!"));
+
+	// You can even write the document to a stream
+	doc.write(std::cout);
 }
 ```
 
 Command line tool
 =================
 
-A command line tool that parses TOML is provided (src/main.cc). It can take either a file or a single line string as input. If the parse is successful, it spews out every key and its value.
+A command line tool that parses TOML is provided (src/main.cc). It can take a file as input. If the parse is successful, it spews out every key and its value.
 
 ```
-./ctoml -f "path/to/file"
-./ctoml -l "single-line-TOML = 42"
+./ctoml "path/to/file"
 ```
 
 Todo
 ====
 
-* Needs more comprehensive tests
-	* Test booleans
-	* Test arrays
+* Needs more powerful write to stream methods
+	* Write only certain key groups to a stream

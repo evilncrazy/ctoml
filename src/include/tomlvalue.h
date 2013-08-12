@@ -5,62 +5,150 @@
 #include <ctime>
 #include <cstddef>
 #include <ostream>
+#include <string>
+#include <vector>
+#include <memory>
 
 #define CTOML_MAX_DATE_LEN 100
 
-enum CTomlType {
-   TOML_NULL, TOML_STRING, TOML_INT, TOML_FLOAT, TOML_BOOLEAN, TOML_DATETIME, TOML_ARRAY
-};
+namespace ctoml {
+   enum class TomlType {
+      String, Int, Float, Boolean, DateTime, Array
+   };
 
-// Defines a TOML primitive. Can be String, Integer, Float, Boolean, Datetime, Array.
-class CTomlValue {
-  private:
-   union {
-      char *p_str; // Represents a String primitive (TODO(evilncrazy): UTF-8 support)
-      int64_t p_int; // Represents a 64 bit Integer
-      double p_float; // Represents a Float (may not be 64 bit :( )
-      bool p_bool; // Represents a Boolean
-      time_t p_time; // Represents a Datetime
-      CTomlValue *p_array; // Represents an Array
-   } value_;
+   class TomlArray; // Forward declaration needed by TomlValue::create_array
 
-   size_t length_;
-   CTomlType type_;
-  public:
-   CTomlValue();
-   CTomlValue(const CTomlValue &val);
-   CTomlValue(char *val);
-   CTomlValue(int val);
-   CTomlValue(int64_t val);
-   CTomlValue(float val);
-   CTomlValue(double val);
-   CTomlValue(bool val);
-   CTomlValue(tm val);
-   CTomlValue(CTomlValue array[], size_t len);
+   // Defines the abstract class for a TOML primitive.
+   class TomlValue {
+   private:
+      TomlType type_;
+   public:
+      TomlValue(TomlType type);
 
-   size_t length() const { return length_; }
-   CTomlType type() const { return type_; }
+      // Returns the type of this TOML value
+      TomlType type() const;
 
-   char *as_string() const { return value_.p_str; }
-   int64_t as_64_int() const { return value_.p_int; }
-   int as_int() const { return (int)value_.p_int; }
-   double as_float() const { return value_.p_float; }
-   bool as_boolean() const { return value_.p_bool; }
-   time_t as_datetime() const { return value_.p_time; }
+      // Factory methods
+      static std::unique_ptr<TomlValue> create_string(std::string str);
+      static std::unique_ptr<TomlValue> create_int(std::int64_t val);
+      static std::unique_ptr<TomlValue> create_float(double val);
+      static std::unique_ptr<TomlValue> create_boolean(bool val);
+      static std::unique_ptr<TomlValue> create_datetime(tm val);
 
-   CTomlValue *as_array() const { return value_.p_array; }
-   CTomlValue as_array(int index) const { return value_.p_array[index]; }
+      static std::unique_ptr<TomlValue> create_array();
 
-   // Equality operators
-   bool operator == (const char *val);
-   bool operator == (const int val);
-   bool operator == (const int64_t val);
-   bool operator == (const double val);
-   bool operator == (const bool val);
-   bool operator == (const tm val);
+      template<typename InputIterator>
+      static std::unique_ptr<TomlValue> create_array(InputIterator begin, InputIterator end) {
+         return std::unique_ptr<TomlValue>(new TomlArray(begin, end));
+      }
 
-   // Stream operators
-   friend std::ostream &operator << (std::ostream &out, const CTomlValue &val);
-};
+      // Equality tests
+      virtual bool equals(std::string) const;
+      virtual bool equals(const char *) const;
+      virtual bool equals(std::int64_t) const;
+      virtual bool equals(int) const;
+      virtual bool equals(float) const;
+      virtual bool equals(bool) const;
+
+      // To string method
+      virtual std::string to_string() const = 0;
+   };
+
+   class TomlString : public TomlValue {
+   private:
+      std::string val_;
+   public:
+      explicit TomlString(std::string val);
+
+      // Returns the string value
+      std::string value() const;
+
+      bool equals(std::string val) const;
+      bool equals(const char *val) const;
+
+      std::string to_string() const;
+   };
+
+   class TomlInt : public TomlValue {
+   private:
+      std::int64_t val_; // 64 bit integer
+   public:
+      explicit TomlInt(std::int64_t val);
+
+      // Returns the integer value
+      std::int64_t value() const;
+
+      bool equals(std::int64_t val) const;
+      bool equals(int val) const;
+      
+      std::string to_string() const;
+   };
+
+   class TomlFloat : public TomlValue {
+   private:
+      double val_;
+   public:
+      explicit TomlFloat(double val);
+
+      // Returns the floating point value
+      double value() const;
+
+      bool equals(float val) const;
+      std::string to_string() const;
+   };
+
+   class TomlBoolean : public TomlValue {
+   private:
+      bool val_;
+   public:
+      explicit TomlBoolean(bool val);
+
+      // Returns the boolean value
+      bool value() const;
+
+      bool equals(bool val) const;
+      std::string to_string() const;
+   };
+
+   class TomlDateTime : public TomlValue {
+   private:
+      time_t val_;
+   public:
+      explicit TomlDateTime(tm val);
+
+      // Returns the time value
+      time_t value() const;
+
+      std::string to_string() const;
+   };
+
+   class TomlArray : public TomlValue {
+   private:
+      std::vector<std::shared_ptr<TomlValue>> array_;
+   public:
+      typedef std::vector<std::shared_ptr<TomlValue>>::const_iterator const_iterator;
+
+      // Create empty TOML array
+      TomlArray();
+
+      // Create a TOML array from iterators
+      template <typename InputIterator>
+      TomlArray(InputIterator begin, InputIterator end) : array_(begin, end) { }
+
+      // Add values to the TOML array
+      void add(std::unique_ptr<TomlValue> v);
+      void add(std::shared_ptr<TomlValue> v);
+
+      // Iterate through the TOML array
+      const_iterator cbegin() const;
+      const_iterator cend() const;
+
+      // Random access
+      std::shared_ptr<TomlValue> at(const int index = 0) const;
+      std::shared_ptr<TomlValue> operator[] (const int index) const;
+
+      std::string to_string() const;
+   };
+}
 
 #endif

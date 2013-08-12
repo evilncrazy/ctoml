@@ -3,27 +3,23 @@
 #include <iostream>
 #include <cstring>
 
-void print_toml(CToml &toml) {
-   for (auto it = toml.cbegin(); it != toml.cend(); ++it) {
-      std::cout << it->first.c_str() << " = " << it->second << std::endl;
+using namespace ctoml;
+
+void print_toml(const TomlDocument &doc) {
+   for (auto it = doc.cbegin(); it != doc.cend(); ++it) {
+      std::cout << it->first << " = " << it->second->to_string() << std::endl;
    }
 }
 
 int main(int argc, char *argv[]) {
-   if (argc == 3) {
-      CToml toml;
-      if (!strcmp(argv[1], "-f")) {
-         // Read from file
-         toml.open(argv[2]);
-      } else if (!strcmp(argv[1], "-l")) {
-         // Read from string
-         toml.from(argv[2]);
-      }
+   if (argc == 2) {
+      TomlParser toml(argv[2]);
 
       if (toml.good()) {
-         toml.parse();
+         TomlDocument doc = toml.parse();
+
          if (toml.success()) {
-            print_toml(toml);
+            print_toml(doc);
          } else {
             std::cout << "Failed to parse TOML file. There were " <<
                (int)toml.num_errors() << " parse error(s)." << std::endl;

@@ -7,78 +7,104 @@
 #include <vector>
 #include <string>
 #include <cstdarg>
+#include <fstream>
 
-struct CTomlError {
-   std::string message;
-   int line_no;
+namespace ctoml {
+   struct TomlError {
+      std::string message;
+      int line_no;
 
-   CTomlError(const char *msg, int line) : message(msg), line_no(line) { }
-};
+      TomlError(const char *msg, int line) : message(msg), line_no(line) { }
+   };
 
-class CToml {
-  private:
-   char *source_str_ = NULL;
-   FILE *source_file_ = NULL;
-   char *cur_;
-   int cur_line = 0;
-   char cur() const { return *cur_; }
+   class TomlDocument {
+   private:
+       // Stores the key-value pairs. The keys are the full key name (with period notation)
+      std::unordered_map<std::string, std::shared_ptr<TomlValue>> values_;
+   public:
+      typedef std::unordered_map<std::string, std::shared_ptr<TomlValue>>::const_iterator const_iterator;
 
-   // Stores the key-value pairs. The keys are the full key name (with period notation)
-   std::unordered_map<std::string, CTomlValue> values_;
+      // Iterate through each key
+      const_iterator cbegin() const;
+      const_iterator cend() const;
 
-   // List of parse errors
-   std::vector<CTomlError> errors_;
+      // Inserts a new TOML value with a key
+      void insert(std::string key, std::shared_ptr<TomlValue> value);
+      void insert(std::string key, std::unique_ptr<TomlValue> value);
 
-   void error(const char *format, ...);
+      // Set a TOML key to a value
+      void set(std::string key, std::shared_ptr<TomlValue> value);
+      void set(std::string key, std::unique_ptr<TomlValue> value);
 
-   bool is_whitespace(char c, bool new_line = false);
-   bool is_numeric(char c, bool dot = false);
+      // Returns true if the key already exists
+      bool is_key(std::string key) const;
 
-   bool is_integer(char *str);
-   bool is_float(char *str);
-   bool is_datetime(char *str);
+      // Returns the TOML value for a particular key
+      std::shared_ptr<TomlValue> get(std::string key) const;
 
-   tm to_time(char *str);
+      // Writes TOML document to stream
+      std::ostream &write(std::ostream &out);
+   };
 
-   void expect(char c);
-   void advance(char c, bool new_line = false);
-   void skip_whitespace(bool new_line = false);
-   void skip_whitespace_and_comments();
+   class TomlParser {
+     private:
+      std::ifstream source_file_;
+      char *cur_;
+      int cur_line = 0;
 
-   char next_char();
-   char next_skip_whitespace(bool new_line = false);
+      char cur() const { return *cur_; }
 
-   CTomlValue parse_string();
-   CTomlValue parse_number();
-   CTomlValue parse_boolean();
-   CTomlValue parse_array();
-   CTomlValue parse_value();
-   std::string parse_key_group();
-   std::string parse_key();
-  public:
-   CToml() { }
+      // List of parse errors
+      std::vector<TomlError> errors_;
+      void error(const char *format, ...);
 
-   void parse();
+      bool is_whitespace(char c, bool new_line = false);
+      bool is_numeric(char c, bool dot = false);
 
-   CTomlValue get(const char *key) const;
-   CTomlValue get(char *key) const;
+      bool is_integer(std::string str);
+      bool is_float(std::string str);
+      bool is_datetime(std::string str);
 
-   bool good() const { return source_file_ != NULL; }
-   bool success() const { return errors_.size() == 0; }
+      tm to_time(std::string str);
 
-   bool from(char *str);
-   bool open(const char *file);
+      void expect(char c);
+      void advance(char c, bool new_line = false);
+      void skip_whitespace(bool new_line = false);
+      void skip_whitespace_and_comments();
 
-   size_t num_errors() const { return errors_.size(); }
-   CTomlError get_error(int i) const { return errors_[i]; }
+      char next_char();
+      char next_skip_whitespace(bool new_line = false);
 
-   std::unordered_map<std::string, CTomlValue>::const_iterator cbegin() const {
-      return values_.cbegin();
-   }
+      std::shared_ptr<TomlValue> parse_string();
+      std::shared_ptr<TomlValue> parse_number();
+      std::shared_ptr<TomlValue> parse_boolean();
+      std::shared_ptr<TomlValue> parse_array();
+      std::shared_ptr<TomlValue> parse_value();
 
-   std::unordered_map<std::string, CTomlValue>::const_iterator cend() const {
-      return values_.cend();
-   }
-};
+      std::string parse_key_group();
+      std::string parse_key();
+     public:
+      TomlParser();
+      explicit TomlParser(const std::string filename);
+
+      // Parse the document.
+      TomlDocument parse();
+
+      // Returns true if the input file is valid
+      bool good() const;
+
+      // Returns true if no were no errors after parsing
+      bool success() const;
+
+      // Open a file. Returns true if good()
+      bool open(const std::string filename);
+
+      // Returns the number of errors
+      size_t num_errors() const { return errors_.size(); }
+
+      // Returns the ith error
+      TomlError get_error(int i) const { return errors_[i]; }
+   };
+}
 
 #endif
