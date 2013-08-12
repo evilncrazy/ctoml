@@ -240,8 +240,12 @@ std::shared_ptr<TomlValue> TomlParser::parse_number() {
    }
 
    // Decide what data type it is
-   if (is_integer(number)) return TomlValue::create_int(atoll(number.c_str()));
    if (is_float(number)) return TomlValue::create_float(atof(number.c_str()));
+#ifdef _WIN32
+   if (is_integer(number))  return TomlValue::create_int(_atoi64(number.c_str()));
+#else
+   if (is_integer(number))  return TomlValue::create_int(atoll(number.c_str()));
+#endif
    if (is_datetime(number)) return TomlValue::create_datetime(to_time(number));
    
    error("\"%s\" is not a valid value", number.c_str());
