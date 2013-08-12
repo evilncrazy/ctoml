@@ -156,7 +156,7 @@ CTomlValue CToml::parse_number() {
    str_buf.push_back('\0');
 
    // Decide what data type it is
-   if (is_integer(&str_buf[0])) return CTomlValue(atoll(&str_buf[0]));
+   if (is_integer(&str_buf[0])) return CTomlValue(int64_t(atoll(&str_buf[0])));
    if (is_float(&str_buf[0])) return CTomlValue(atof(&str_buf[0]));
    if (is_datetime(&str_buf[0])) return CTomlValue(to_time(&str_buf[0]));
    else return error("\"%s\" is not a valid value",
