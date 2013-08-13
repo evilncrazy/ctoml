@@ -62,6 +62,10 @@ A command line tool that parses TOML is provided (src/main.cc). It can take a fi
 ./ctoml "path/to/file"
 ```
 
+Licence
+=======
+This software is released under the MIT licence (see LICENCE).
+
 Todo
 ====
 
