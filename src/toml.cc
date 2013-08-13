@@ -39,16 +39,16 @@ std::shared_ptr<TomlValue> TomlDocument::get(std::string key) const {
 }
 
 std::ostream &TomlDocument::write(std::ostream &out) {
-   // Sort key groups by key in lexographical order (but putting those with no keys in front)
-   std::map<std::string, std::shared_ptr<TomlValue>, bool(*)(std::string, std::string)> map(
-      [] (std::string a, std::string b) {
-         return a.find(".") == std::string::npos || a < b;
-      }
-   );
+   // Sort key groups by key in lexographical order (but putting those with root key in front)
+   std::map<std::string, std::shared_ptr<TomlValue>> map;
 
    // Add each key to the map to sort it
    for (auto it = cbegin(); it != cend(); ++it) {
-      map.insert(std::make_pair(it->first, it->second));
+      if (it->first.find(".") == std::string::npos) {
+         map.insert(std::make_pair("." + it->first, it->second));
+      } else {
+         map.insert(std::make_pair(it->first, it->second));
+      }
    }
 
    // Write each key group
@@ -57,7 +57,7 @@ std::ostream &TomlDocument::write(std::ostream &out) {
       // Get the value of this key (TODO: escape the value e.g. convert '\n' to '\\n')
       std::string value = it->second->to_string();
 
-      // Get the key without the last '.'
+      // Get the key without the last '.' 
       auto pos = it->first.rfind(".");
       if (pos != std::string::npos) {
          prefix = it->first.substr(0, pos);
@@ -313,6 +313,11 @@ std::string TomlParser::parse_key() {
 }
 
 TomlDocument TomlParser::parse() {
+   if (!good()) {
+      // Return empty document error in file
+      return TomlDocument();
+   }
+
    // The final document
    TomlDocument doc;
 
