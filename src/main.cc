@@ -13,7 +13,7 @@ void print_toml(const TomlDocument &doc) {
 
 int main(int argc, char *argv[]) {
    if (argc == 2) {
-      TomlParser toml(argv[2]);
+      TomlParser toml(argv[1]);
 
       if (toml.good()) {
          TomlDocument doc = toml.parse();
