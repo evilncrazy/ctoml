@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -Wall -Wextra -pedantic -std=c++0x -g
+CFLAGS = -Wall -Wextra -pedantic -std=c++11 -g
 SF = ../src
 HF = ../src/include
 
@@ -16,3 +16,6 @@ toml.o : $(SF)/toml.cc $(HF)/toml.h $(HF)/tomlvalue.h
 
 toml : main.o tomlvalue.o toml.o
 	$(CC) main.o tomlvalue.o toml.o -o ctoml
+
+clean :
+	rm -f *.o ctoml
