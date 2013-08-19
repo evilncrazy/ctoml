@@ -143,6 +143,8 @@ namespace ctoml {
       const_iterator cbegin() const;
       const_iterator cend() const;
 
+       inline size_t size() const { return array_.size(); }
+
       // Random access
       std::shared_ptr<TomlValue> at(const int index = 0) const;
       std::shared_ptr<TomlValue> operator[] (const int index) const;
