@@ -356,6 +356,8 @@ TomlDocument TomlParser::parse() {
       }
    }
 
+   this->close();
+
    return doc;
 }
 
