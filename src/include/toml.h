@@ -71,6 +71,37 @@ namespace ctoml {
           return val;
       }
 
+      template <class T>
+      std::vector<T> get_array(std::string key) const
+      {
+          // FIXME: How to do with std::vector<std::string>?
+          std::vector<T> val;
+          if (is_key(key))
+          {
+              std::shared_ptr<TomlValue> sec = values_.find(key)->second;
+
+              auto t = std::static_pointer_cast<ctoml::TomlArray>(sec);
+              for (size_t i = 0 ; i < t->size() ; i++)
+              {
+                  std::shared_ptr<ctoml::TomlValue> ti = t->at(i);
+                  //std::cout << "t->at(i="<<i<<") = " << ti->to_string() << std::endl;
+                  if (ti->type() == TomlType::Int)
+                  {
+                    std::shared_ptr<ctoml::TomlInt> t = std::static_pointer_cast<ctoml::TomlInt>(ti);
+                    //std::cout << "t = " << t->value() << std::endl;
+                    val.push_back(t->value());
+                  }
+                  else if (ti->type() == TomlType::Float)
+                  {
+                    std::shared_ptr<ctoml::TomlFloat> t = std::static_pointer_cast<ctoml::TomlFloat>(ti);
+                    //std::cout << "t = " << t->value() << std::endl;
+                    val.push_back(t->value());
+                  }
+              }
+          }
+          return val;
+      }
+
       // Writes TOML document to stream
       std::ostream &write(std::ostream &out);
    };
