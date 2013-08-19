@@ -373,3 +373,7 @@ bool TomlParser::open(const std::string filename) {
 
    return source_file_.good();
 }
+
+void TomlParser::close() {
+    source_file_.close();
+}

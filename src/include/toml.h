@@ -99,6 +99,9 @@ namespace ctoml {
       // Open a file. Returns true if good()
       bool open(const std::string filename);
 
+      // Close file
+      void close();
+
       // Returns the number of errors
       size_t num_errors() const { return errors_.size(); }
 
