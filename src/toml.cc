@@ -86,7 +86,7 @@ TomlParser::TomlParser() {
 }
 
 TomlParser::TomlParser(std::string filename) {
-   open(filename);
+   this->open(filename);
 }
 
 void TomlParser::error(const char *format, ...) {
