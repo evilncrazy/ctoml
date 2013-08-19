@@ -50,7 +50,7 @@ namespace ctoml {
      private:
       std::ifstream source_file_;
       char *cur_;
-      int cur_line = 0;
+      int cur_line;
 
       char cur() const { return *cur_; }
 
