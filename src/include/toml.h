@@ -42,6 +42,35 @@ namespace ctoml {
       // Returns the TOML value for a particular key
       std::shared_ptr<TomlValue> get(std::string key) const;
 
+      template <class T>
+      T get(std::string key) const
+      {
+          T val = 0;
+          if (is_key(key))
+          {
+              std::shared_ptr<TomlValue> sec = values_.find(key)->second;
+              // FIXME: How to do this for a std::string?
+              //if (sec->type() == TomlType::String)
+              //    val = sec->to_string();
+              if (sec->type() == TomlType::Int)
+              {
+                  auto t = std::static_pointer_cast<ctoml::TomlInt>(sec);
+                  val = t->value();
+              }
+              else if (sec->type() == TomlType::Float)
+              {
+                  auto t = std::static_pointer_cast<ctoml::TomlFloat>(sec);
+                  val = t->value();
+              }
+              else if (sec->type() == TomlType::DateTime)
+              {
+                  auto t = std::static_pointer_cast<ctoml::TomlDateTime>(sec);
+                  val = t->value();
+              }
+          }
+          return val;
+      }
+
       // Writes TOML document to stream
       std::ostream &write(std::ostream &out);
    };
