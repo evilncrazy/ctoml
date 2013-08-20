@@ -122,6 +122,26 @@ namespace ctoml {
       std::string to_string() const;
    };
 
+   // Cast a shared_ptr of a TomlValue into its primitive type
+   template <class T>
+   T toml_value_cast(std::shared_ptr<TomlValue> value) {
+      if (value->type() == TomlType::Boolean)
+         return static_cast<T>(std::static_pointer_cast<TomlBoolean>(value)->value());
+      else if (value->type() == TomlType::Int)
+         return static_cast<T>(std::static_pointer_cast<TomlInt>(value)->value());
+      else if (value->type() == TomlType::Float)
+         return static_cast<T>(std::static_pointer_cast<TomlFloat>(value)->value());
+      else if (value->type() == TomlType::DateTime)
+         return static_cast<T>(std::static_pointer_cast<TomlDateTime>(value)->value());
+      return T();
+   }
+
+   // Template specialization for std::string
+   template <>
+   inline std::string toml_value_cast<std::string>(std::shared_ptr<TomlValue> value) {
+      return std::static_pointer_cast<TomlString>(value)->value();
+   }
+
    class TomlArray : public TomlValue {
    private:
       std::vector<std::shared_ptr<TomlValue>> array_;
@@ -143,7 +163,20 @@ namespace ctoml {
       const_iterator cbegin() const;
       const_iterator cend() const;
 
-       inline size_t size() const { return array_.size(); }
+      // Return all items in the array as values in a vector
+      template <class T>
+      std::vector<T> as_vector() const {
+         std::vector<T> list;
+
+         for (auto it = cbegin(); it != cend(); ++it) {
+            list.push_back(toml_value_cast<T>(it));
+         }
+
+         return list;
+      }
+
+      // Get the size of the array
+      size_t size() const { return array_.size(); }
 
       // Random access
       std::shared_ptr<TomlValue> at(const int index = 0) const;

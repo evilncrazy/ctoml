@@ -11,8 +11,8 @@ void test_key_groups() {
    TomlParser toml("tests.toml");
    auto doc = toml.parse();
 
-   assert(doc.get("group.cake")->equals("cake"));
-   assert(doc.get("group.subgroup.apples")->equals("apples"));
+   assert(doc.get_as<std::string>("group.cake") == "cake");
+   assert(doc.get_as<std::string>("group.subgroup.apples") == "apples");
 }
 
 // test_parse_ints
@@ -21,11 +21,11 @@ void test_parse_ints() {
    TomlParser toml("tests.toml");
    auto doc = toml.parse();
 
-   assert(doc.get("test-positive-int")->equals(42));
-   assert(doc.get("test-negative-int")->equals(-17));
+   assert(doc.get_as<int>("test-positive-int") == 42);
+   assert(doc.get_as<int>("test-negative-int") == -17);
 
-   assert(doc.get("test-large-int")->equals(1152921504606846976LL));
-   assert(doc.get("test-small-int")->equals(-1152921504606846976LL));
+   assert(doc.get_as<std::int64_t>("test-large-int") == 1152921504606846976LL);
+   assert(doc.get_as<std::int64_t>("test-small-int") == -1152921504606846976LL);
 }
 
 // test_parse_strings
@@ -34,8 +34,8 @@ void test_parse_strings() {
    TomlParser toml("tests.toml");
    auto doc = toml.parse();
 
-   assert(doc.get("test-string")->equals("I'm a string. \"You can quote me\". "
-      "Tab \t newline \n you get it."));
+   assert(doc.get_as<std::string>("test-string") == "I'm a string. \"You can quote me\". "
+      "Tab \t newline \n you get it.");
 }
 
 // test_parse_file
