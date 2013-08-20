@@ -31,14 +31,8 @@ int main() {
 		// ....
 	}
 
-	// To use the actual value, you will need to cast it
-	if (val->type() == TomlType::Int) {
-		// Cast it into an int
-		auto t = std::static_pointer_cast<TomlInt>(val);
-
-		// Print out double the value
-		std::cout << t->value() * 2 << std::endl;
-	}
+	// To use the primitive value of a key, you can do:
+	std::cout << doc.get_as<float>("pi") * 2 << std::endl;
 
 	// We can iterate through all the keys
 	for (auto it = doc.cbegin(); it != doc.cend(); ++it) {
