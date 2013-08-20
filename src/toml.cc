@@ -86,7 +86,7 @@ TomlParser::TomlParser() {
 }
 
 TomlParser::TomlParser(std::string filename) {
-   open(filename);
+   this->open(filename);
 }
 
 void TomlParser::error(const char *format, ...) {
@@ -356,6 +356,8 @@ TomlDocument TomlParser::parse() {
       }
    }
 
+   this->close();
+
    return doc;
 }
 
@@ -372,4 +374,8 @@ bool TomlParser::open(const std::string filename) {
    cur_ = new char(' '); // Dummy value
 
    return source_file_.good();
+}
+
+void TomlParser::close() {
+    source_file_.close();
 }
