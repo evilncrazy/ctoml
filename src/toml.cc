@@ -90,11 +90,11 @@ std::ostream &TomlDocument::write(std::ostream &out) {
    return out; 
 }
 
-TomlParser::TomlParser() {
+TomlParser::TomlParser() : cur_line_(0) {
 
 }
 
-TomlParser::TomlParser(std::string filename) {
+TomlParser::TomlParser(std::string filename) : cur_line_(0) {
    this->open(filename);
 }
 
@@ -105,7 +105,7 @@ void TomlParser::error(const char *format, ...) {
    vsnprintf(buffer, 1024, format, args);
    va_end(args);
 
-   errors_.push_back(TomlError(buffer, cur_line));
+   errors_.push_back(TomlError(buffer, cur_line_));
 
    // Now we skip to the next line
    while (next_char() != '\n' && cur()) { }
@@ -177,7 +177,7 @@ char TomlParser::next_char() {
    char ch = source_file_.get();
    *cur_ = (ch == EOF ? '\0' : ch);
 
-   if (cur() == '\n') cur_line++;
+   if (cur() == '\n') cur_line_++;
    return cur();
 }
 
