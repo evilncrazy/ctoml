@@ -24,6 +24,8 @@ namespace ctoml {
    public:
       typedef std::unordered_map<std::string, std::shared_ptr<TomlValue>>::const_iterator const_iterator;
 
+      void Print() const;
+
       // Iterate through each key
       const_iterator cbegin() const;
       const_iterator cend() const;
