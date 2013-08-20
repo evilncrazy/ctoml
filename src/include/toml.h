@@ -24,6 +24,8 @@ namespace ctoml {
    public:
       typedef std::unordered_map<std::string, std::shared_ptr<TomlValue>>::const_iterator const_iterator;
 
+      void Print() const;
+
       // Iterate through each key
       const_iterator cbegin() const;
       const_iterator cend() const;
@@ -41,6 +43,66 @@ namespace ctoml {
 
       // Returns the TOML value for a particular key
       std::shared_ptr<TomlValue> get(std::string key) const;
+
+      template <class T>
+      T get(std::string key) const
+      {
+          T val = 0;
+          if (is_key(key))
+          {
+              std::shared_ptr<TomlValue> sec = values_.find(key)->second;
+              // FIXME: How to do this for a std::string?
+              //if (sec->type() == TomlType::String)
+              //    val = sec->to_string();
+              if (sec->type() == TomlType::Int)
+              {
+                  auto t = std::static_pointer_cast<ctoml::TomlInt>(sec);
+                  val = t->value();
+              }
+              else if (sec->type() == TomlType::Float)
+              {
+                  auto t = std::static_pointer_cast<ctoml::TomlFloat>(sec);
+                  val = t->value();
+              }
+              else if (sec->type() == TomlType::DateTime)
+              {
+                  auto t = std::static_pointer_cast<ctoml::TomlDateTime>(sec);
+                  val = t->value();
+              }
+          }
+          return val;
+      }
+
+      template <class T>
+      std::vector<T> get_array(std::string key) const
+      {
+          // FIXME: How to do with std::vector<std::string>?
+          std::vector<T> val;
+          if (is_key(key))
+          {
+              std::shared_ptr<TomlValue> sec = values_.find(key)->second;
+
+              auto t = std::static_pointer_cast<ctoml::TomlArray>(sec);
+              for (size_t i = 0 ; i < t->size() ; i++)
+              {
+                  std::shared_ptr<ctoml::TomlValue> ti = t->at(i);
+                  //std::cout << "t->at(i="<<i<<") = " << ti->to_string() << std::endl;
+                  if (ti->type() == TomlType::Int)
+                  {
+                    std::shared_ptr<ctoml::TomlInt> t = std::static_pointer_cast<ctoml::TomlInt>(ti);
+                    //std::cout << "t = " << t->value() << std::endl;
+                    val.push_back(t->value());
+                  }
+                  else if (ti->type() == TomlType::Float)
+                  {
+                    std::shared_ptr<ctoml::TomlFloat> t = std::static_pointer_cast<ctoml::TomlFloat>(ti);
+                    //std::cout << "t = " << t->value() << std::endl;
+                    val.push_back(t->value());
+                  }
+              }
+          }
+          return val;
+      }
 
       // Writes TOML document to stream
       std::ostream &write(std::ostream &out);
@@ -98,6 +160,9 @@ namespace ctoml {
 
       // Open a file. Returns true if good()
       bool open(const std::string filename);
+
+      // Close file
+      void close();
 
       // Returns the number of errors
       size_t num_errors() const { return errors_.size(); }
