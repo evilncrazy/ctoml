@@ -59,7 +59,7 @@ namespace ctoml {
       void error(const char *format, ...);
 
       bool is_whitespace(char c, bool new_line = false);
-      bool is_numeric(char c, bool dot = false);
+      bool is_numeric(char c);
 
       bool is_integer(std::string str);
       bool is_float(std::string str);

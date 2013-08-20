@@ -104,11 +104,12 @@ void TomlParser::error(const char *format, ...) {
 }
 
 bool TomlParser::is_whitespace(char c, bool new_line) {
-   return c == '\t' || c == ' ' || (c == '\n' && new_line);
+   if (!new_line && (c == '\n' || c == '\r')) return false;
+   return isspace(c);
 }
 
-bool TomlParser::is_numeric(char c, bool dot) {
-   return (c == dot && dot) || (c >= '0' && c <= '9');
+bool TomlParser::is_numeric(char c) {
+   return isdigit(c);
 }
 
 bool TomlParser::is_integer(std::string str) {
