@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <vector>
 #include <map>
+#include <iostream>
 
 using namespace ctoml;
 
@@ -34,6 +35,14 @@ bool TomlDocument::is_key(std::string key) const {
    return values_.find(key) != values_.end();
 }
 
+void TomlDocument::Print() const
+{
+    std::cout << "TomlDocument::Print():" << std::endl;
+   for (auto it = cbegin(); it != cend(); ++it)
+   {
+       std::cout << "    " << it->first << ": " << it->second->to_string() << std::endl;
+   }
+}
 std::shared_ptr<TomlValue> TomlDocument::get(std::string key) const {
    return is_key(key) ? values_.find(key)->second : nullptr;
 }
