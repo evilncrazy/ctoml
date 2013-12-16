@@ -55,6 +55,20 @@ namespace ctoml {
          return toml_value_cast<T>(get(key));
       }
 
+      template <class T>
+      std::vector<T> get_array_as(std::string key) const {
+         std::vector<T> array;
+
+         std::shared_ptr<TomlValue> sec = get(key);
+         auto t = std::static_pointer_cast<ctoml::TomlArray>(sec);
+         for (size_t i = 0 ; i < t->size() ; i++)
+         {
+            array.push_back(toml_value_cast<T>(t->at(i)));
+         }
+
+         return array;
+      }
+
       // Writes TOML document to stream
       std::ostream &write(std::ostream &out);
    };
